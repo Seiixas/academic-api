@@ -1,4 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+
 import Classroom from 'App/Models/Classroom';
 import Teacher from 'App/Models/Teacher';
 
@@ -28,13 +29,18 @@ export default class ClassroomsController {
     }
 
     const classroom = await Classroom.create({
-      createdBy: teacher.id,
-      classNumber: class_number,
+      created_by: teacher.id,
+      class_number,
       availability,
       capacity
     });
 
     await classroom.save();
+
+    return {
+      message: 'Sala de aula criada com sucesso!',
+      data: classroom
+    }
   }
 
   public async show({ request, response }: HttpContextContract) {
@@ -48,6 +54,9 @@ export default class ClassroomsController {
         message: 'Sala de aula não encontrado.',
       }
     }
+    
+
+    await classroom.load('students')
 
     return {
       message: 'Sala de aula encontrada com sucesso!',
@@ -83,7 +92,7 @@ export default class ClassroomsController {
       }
     }
 
-    if (classroom.createdBy !== teacher.id) {
+    if (classroom.created_by !== teacher.id) {
       response.status(401);
       return {
         message: 'Você não está autorizado a editar esta sala de aula.'
@@ -92,9 +101,16 @@ export default class ClassroomsController {
 
     // TODO: Criar um get para ver a quantidade alunos e cria regra de negócio para editar capacidade
 
-    classroom.classNumber = class_number ?? class_number;
+    classroom.class_number = class_number ?? class_number;
     classroom.capacity = capacity ?? capacity;
     classroom.availability = availability ?? availability;
+
+    await classroom.save();
+
+    return {
+      message: 'Sala de aula atualizada com sucesso!',
+      data: classroom
+    }
   }
 
   public async destroy({ request, response }: HttpContextContract) {
@@ -119,7 +135,7 @@ export default class ClassroomsController {
       }
     }
 
-    if (classroom.createdBy !== teacher.id) {
+    if (classroom.created_by !== teacher.id) {
       response.status(401);
       return {
         message: 'Você não está autorizado a deletar esta sala de aula.'

@@ -5,15 +5,17 @@ export default class extends BaseSchema {
 
   public async up () {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id')
-      table.integer('classNumber')
-      table.integer('capacity')
-      table.boolean('availability')
-      table.integer('createdBy')
+      table.increments('id').primary();
+      table.integer('class_number').notNullable().unique();
+      table.integer('capacity').notNullable();
+      table.boolean('availability').defaultTo(true);
 
-      /**
-       * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
-       */
+      table
+        .integer('created_by')
+        .unsigned()
+        .references('teachers.id')
+        .onDelete('SET NULL');
+
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })

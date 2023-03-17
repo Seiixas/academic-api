@@ -35,6 +35,7 @@ export default class TeachersController {
       birthday
     });
 
+    await teacher.save();
     response.status(201);
 
     return {
