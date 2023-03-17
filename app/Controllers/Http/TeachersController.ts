@@ -126,5 +126,6 @@ export default class TeachersController {
     }
     
     await teacher.delete();
+    response.status(204);
   }
 }
