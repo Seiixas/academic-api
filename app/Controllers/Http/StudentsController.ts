@@ -1,13 +1,13 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { v4 as uuidV4 } from 'uuid';
 
-import Teacher from 'App/Models/Teacher';
+import Student from 'App/Models/Student';
 
-export default class TeachersController {
+export default class StudentsController {
   public async store({ request, response }: HttpContextContract) {
     const { name, email, birthday } = request.body();
 
-    const emailAlreadyExists = await Teacher.findBy('email', email);
+    const emailAlreadyExists = await Student.findBy('email', email);
 
     if (emailAlreadyExists) {
       response.status(400);
@@ -28,7 +28,7 @@ export default class TeachersController {
 
     const registrationGenerated = uuidV4();
 
-    const teacher = await Teacher.create({
+    const student = await Student.create({
       name,
       email,
       registration: registrationGenerated,
@@ -38,26 +38,26 @@ export default class TeachersController {
     response.status(201);
 
     return {
-      message: 'Professor cadastrado com sucesso!',
-      data: teacher
+      message: 'Aluno cadastrado com sucesso!',
+      data: student
     };
   }
 
   public async show({ request, response }: HttpContextContract) {
     const { id } = request.params();
 
-    const teacher = await Teacher.find(id);
+    const student = await Student.find(id);
 
-    if (!teacher) {
+    if (!student) {
       response.status(404);
       return {
-        message: 'Professor não encontrado.',
+        message: 'Aluno não encontrado.',
       }
     }
 
     return {
-      message: 'Professor encontrado com sucesso!',
-      data: teacher
+      message: 'Aluno encontrado com sucesso!',
+      data: student
     }
   }
 
@@ -65,16 +65,16 @@ export default class TeachersController {
     const { name, email, birthday } = request.body();
     const { id } = request.params();
 
-    const teacher = await Teacher.find(id);
+    const student = await Student.find(id);
 
-    if (!teacher) {
+    if (!student) {
       response.status(404);
       return {
-        message: 'Professor não encontrado.',
+        message: 'Aluno não encontrado.',
       }
     }
 
-    const emailAlreadyExists = await Teacher.findBy('email', email);
+    const emailAlreadyExists = await Student.findBy('email', email);
 
     if (emailAlreadyExists) {
       response.status(400);
@@ -93,15 +93,15 @@ export default class TeachersController {
       }
     }
     
-    teacher.name = name ?? name;
-    teacher.email = email ?? email;
-    teacher.birthday = birthday ?? birthday;
+    student.name = name ?? name;
+    student.email = email ?? email;
+    student.birthday = birthday ?? birthday;
 
-    await teacher.save();
+    await student.save();
 
     return {
-      message: 'Professor alterado com sucesso!',
-      data: teacher
+      message: 'Aluno alterado com sucesso!',
+      data: student
     }
   }
 
@@ -109,22 +109,22 @@ export default class TeachersController {
     const { id } = request.params();
     const { email } = request.body();
 
-    const teacher = await Teacher.find(id);
+    const student = await Student.find(id);
 
-    if (!teacher) {
+    if (!student) {
       response.status(404);
       return {
-        message: 'Professor não encontrado.',
+        message: 'Aluno não encontrado.',
       }
     }
 
-    if (teacher.email !== email) {
+    if (student.email !== email) {
       response.status(404);
       return {
-        message: 'E-mail não confere com e-mail do professor.',
+        message: 'E-mail não confere com e-mail do aluno.',
       }
     }
     
-    await teacher.delete();
+    await student.delete();
   }
 }
