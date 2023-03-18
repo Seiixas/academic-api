@@ -28,4 +28,5 @@ Route.group(() => {
   Route.post('/classrooms/students/:id', 'ClassroomsController.addStudent')
   Route.delete('/classrooms/students/:id', 'ClassroomsController.removeStudent')
   Route.get('/classrooms/students/:id', 'ClassroomsController.showStudents')
+  Route.get('/classrooms/my-classes/:id', 'ClassroomsController.myClasses')
 }).prefix('/api');

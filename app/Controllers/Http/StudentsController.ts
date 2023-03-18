@@ -10,20 +10,18 @@ export default class StudentsController {
     const emailAlreadyExists = await Student.findBy('email', email);
 
     if (emailAlreadyExists) {
-      response.status(400);
-      return {
+      return response.status(400).json({
         message: 'Este e-mail já está em uso.',
-      }
+      })
     }
 
     const todayDate = new Date().setHours(0,0,0,0);
     const birthdayDate = new Date(birthday).setHours(0,0,0,0);
 
     if (birthdayDate >= todayDate) {
-      response.status(400);
-      return {
-        message: 'Data de nascimento superior a data de hoje.',
-      }
+      return response.status(400).json({
+        message: 'Data de nascimento superior a data de hoje.'
+      })
     }
 
     const registrationGenerated = uuidV4();
@@ -37,10 +35,10 @@ export default class StudentsController {
 
     response.status(201);
 
-    return {
+    return response.json({
       message: 'Aluno cadastrado com sucesso!',
       data: student
-    };
+    });
   }
 
   public async show({ request, response }: HttpContextContract) {
@@ -49,16 +47,15 @@ export default class StudentsController {
     const student = await Student.find(id);
 
     if (!student) {
-      response.status(404);
-      return {
+      return response.status(404).json({
         message: 'Aluno não encontrado.',
-      }
+      })
     }
 
-    return {
+    return response.json({
       message: 'Aluno encontrado com sucesso!',
       data: student
-    }
+    })
   }
 
   public async update({ request, response }: HttpContextContract) {
@@ -68,29 +65,26 @@ export default class StudentsController {
     const student = await Student.find(id);
 
     if (!student) {
-      response.status(404);
-      return {
+      return response.status(404).json({
         message: 'Aluno não encontrado.',
-      }
+      })
     }
 
     const emailAlreadyExists = await Student.findBy('email', email);
 
     if (emailAlreadyExists) {
-      response.status(400);
-      return {
+      return response.status(400).json({
         message: 'Este e-mail já está em uso.',
-      }
+      })
     }
 
     const todayDate = new Date().setHours(0,0,0,0);
     const birthdayDate = new Date(birthday).setHours(0,0,0,0);
 
     if (birthdayDate >= todayDate) {
-      response.status(400);
-      return {
+      return response.status(400).json({
         message: 'Data de nascimento superior a data de hoje.',
-      }
+      })
     }
     
     student.name = name ?? name;
@@ -99,10 +93,10 @@ export default class StudentsController {
 
     await student.save();
 
-    return {
+    return response.json({
       message: 'Aluno alterado com sucesso!',
       data: student
-    }
+    })
   }
 
   public async destroy({ request, response }: HttpContextContract) {
@@ -112,20 +106,18 @@ export default class StudentsController {
     const student = await Student.find(id);
 
     if (!student) {
-      response.status(404);
-      return {
+      return response.status(404).json({
         message: 'Aluno não encontrado.',
-      }
+      })
     }
 
     if (student.email !== email) {
-      response.status(404);
-      return {
+      return response.status(404).json({
         message: 'E-mail não confere com e-mail do aluno.',
-      }
+      })
     }
     
     await student.delete();
-    response.status(204);
+    return response.status(204);
   }
 }

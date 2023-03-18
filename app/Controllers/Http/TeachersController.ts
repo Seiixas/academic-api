@@ -10,20 +10,18 @@ export default class TeachersController {
     const emailAlreadyExists = await Teacher.findBy('email', email);
 
     if (emailAlreadyExists) {
-      response.status(400);
-      return {
+      return response.status(400).json({
         message: 'Este e-mail já está em uso.',
-      }
+      })
     }
 
     const todayDate = new Date().setHours(0,0,0,0);
     const birthdayDate = new Date(birthday).setHours(0,0,0,0);
 
     if (birthdayDate >= todayDate) {
-      response.status(400);
-      return {
-        message: 'Data de nascimento superior a data de hoje.',
-      }
+      return response.status(400).json({
+        message: 'Data de nascimento superior a data de hoje.'
+      })
     }
 
     const registrationGenerated = uuidV4();
@@ -35,13 +33,12 @@ export default class TeachersController {
       birthday
     });
 
-    await teacher.save();
     response.status(201);
 
-    return {
+    return response.json({
       message: 'Professor cadastrado com sucesso!',
       data: teacher
-    };
+    });
   }
 
   public async show({ request, response }: HttpContextContract) {
@@ -50,16 +47,15 @@ export default class TeachersController {
     const teacher = await Teacher.find(id);
 
     if (!teacher) {
-      response.status(404);
-      return {
+      return response.status(404).json({
         message: 'Professor não encontrado.',
-      }
+      })
     }
 
-    return {
+    return response.json({
       message: 'Professor encontrado com sucesso!',
       data: teacher
-    }
+    })
   }
 
   public async update({ request, response }: HttpContextContract) {
@@ -69,29 +65,26 @@ export default class TeachersController {
     const teacher = await Teacher.find(id);
 
     if (!teacher) {
-      response.status(404);
-      return {
+      return response.status(404).json({
         message: 'Professor não encontrado.',
-      }
+      })
     }
 
     const emailAlreadyExists = await Teacher.findBy('email', email);
 
     if (emailAlreadyExists) {
-      response.status(400);
-      return {
+      return response.status(400).json({
         message: 'Este e-mail já está em uso.',
-      }
+      })
     }
 
     const todayDate = new Date().setHours(0,0,0,0);
     const birthdayDate = new Date(birthday).setHours(0,0,0,0);
 
     if (birthdayDate >= todayDate) {
-      response.status(400);
-      return {
+      return response.status(400).json({
         message: 'Data de nascimento superior a data de hoje.',
-      }
+      })
     }
     
     teacher.name = name ?? name;
@@ -100,10 +93,10 @@ export default class TeachersController {
 
     await teacher.save();
 
-    return {
+    return response.json({
       message: 'Professor alterado com sucesso!',
       data: teacher
-    }
+    })
   }
 
   public async destroy({ request, response }: HttpContextContract) {
@@ -113,20 +106,18 @@ export default class TeachersController {
     const teacher = await Teacher.find(id);
 
     if (!teacher) {
-      response.status(404);
-      return {
+      return response.status(404).json({
         message: 'Professor não encontrado.',
-      }
+      })
     }
 
     if (teacher.email !== email) {
-      response.status(404);
-      return {
+      return response.status(404).json({
         message: 'E-mail não confere com e-mail do professor.',
-      }
+      })
     }
     
     await teacher.delete();
-    response.status(204);
+    return response.status(204);
   }
 }
