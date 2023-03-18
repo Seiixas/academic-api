@@ -2,7 +2,14 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 import Classroom from 'App/Models/Classroom';
 import Student from 'App/Models/Student';
-import Teacher from 'App/Models/Teacher';
+import { AddStudentToClassroomService } from 'App/Services/Classrooms/AddStudentToClassroomService';
+import { CreateClassroomService } from 'App/Services/Classrooms/CreateClassroomService';
+import { RemoveClassroomService } from 'App/Services/Classrooms/RemoveClassroomService';
+import { RemoveStudentFromClassroomService } from 'App/Services/Classrooms/RemoveStudentFromClassroomService';
+import { ShowClassroomService } from 'App/Services/Classrooms/ShowClassroomService';
+import { ShowClassroomsFromStudentService } from 'App/Services/Classrooms/ShowClassroomsFromStudentService';
+import { ShowStudentsFromClassroomService } from 'App/Services/Classrooms/ShowStudentsFromClassroomService';
+import { UpdateClassroomService } from 'App/Services/Classrooms/UpdateClasroomService';
 
 export default class ClassroomsController {
   public async store({ request, response }: HttpContextContract) {
@@ -12,51 +19,25 @@ export default class ClassroomsController {
       capacity
     } = request.body();
 
-    if (capacity <= 0) {
-      response.status(400).json({
-        message: 'A sala deve ter ao menos uma vaga para alunos.'
-      });
-    }
+    const createClassroomService = new CreateClassroomService();
 
-    const teacher = await Teacher.find(teacher_responsible);
-
-    if (!teacher) {
-      return response.status(404).json({
-        message: 'Este professor não existe.'
-      });
-    }
-
-    const classroom = await Classroom.create({
-      created_by: teacher.id,
-      class_number,
-      capacity
-    });
-
-    await classroom.save();
-
-    return response.json({
-      message: 'Sala de aula criada com sucesso!',
-      data: classroom
+    const classroom = await createClassroomService.execute({
+      teacherId: teacher_responsible,
+      classNumber: class_number,
+      capacity,
     })
+
+    return response.status(201).json(classroom);
   }
 
   public async show({ request, response }: HttpContextContract) {
     const { id } = request.params();
 
-    const classroom = await Classroom.find(id);
+    const showClassroomService = new ShowClassroomService();
 
-    if (!classroom) {
-      return response.status(404).json({
-        message: 'Sala de aula não encontrado.',
-      })
-    }
+    const classroom = await showClassroomService.execute(id);
 
-    await classroom.load('students')
-
-    return {
-      message: 'Sala de aula encontrada com sucesso!',
-      data: classroom
-    }
+    return response.json(classroom);
   }
 
   public async update({ request, response }: HttpContextContract) {
@@ -69,77 +50,30 @@ export default class ClassroomsController {
       availability
     } = request.body();
 
-    const classroom = await Classroom.find(id);
+    const updateClassroomService = new UpdateClassroomService();
 
-    if (!classroom) {
-      return response.status(404).json({
-        message: 'Sala de aula não encontrado.',
-      })
-    }
+    const updatedClassroom = await updateClassroomService.execute({
+      id,
+      teacherId: teacher_responsible,
+      classNumber: class_number,
+      capacity,
+      availability,
+    });
 
-    const teacher = await Teacher.find(teacher_responsible);
-
-    if (!teacher) {
-      return response.status(404).json({
-        message: 'Professor responsável não encontrado.',
-      })
-    }
-
-    if (classroom.created_by !== teacher.id) {
-      return response.status(401).json({
-        message: 'Você não está autorizado a editar esta sala de aula.'
-      })
-    }
-
-    await classroom.load('students');
-
-    const enrolledStudents = classroom.students.length;
-
-    if (capacity < enrolledStudents) {
-      return response.status(400).json({
-        message: 'A capacidade não pode ser menor que a quantidade alunos já matriculados.',
-      })
-    }
-
-    classroom.class_number = class_number ?? class_number;
-    classroom.capacity = capacity ?? capacity;
-    classroom.availability = availability ?? availability;
-
-    await classroom.save();
-
-    return response.json({
-      message: 'Sala de aula atualizada com sucesso!',
-      data: classroom
-    })
+    return response.json(updatedClassroom)
   }
 
   public async destroy({ request, response }: HttpContextContract) {
     const { id } = request.params();
     const { teacher_responsible } = request.body();
 
-    const teacher = await Teacher.find(teacher_responsible);
+    const removeClassroomService = new RemoveClassroomService();
 
-    if (!teacher) {
-      return response.status(404).json({
-        message: 'Professor responsável não encontrado.',
-      })
-    }
+    await removeClassroomService.execute({
+      id,
+      teacherId: teacher_responsible,
+    })
 
-    const classroom = await Classroom.find(id);
-
-    if (!classroom) {
-      return response.status(404).json({
-        message: 'Sala de aula não encontrada.',
-      })
-    }
-
-    if (classroom.created_by !== teacher.id) {
-      return response.status(401).json({
-        message: 'Você não está autorizado a deletar esta sala de aula.'
-      })
-    }
-
-    await classroom.delete();
     return response.status(204);
   }
 
@@ -147,195 +81,59 @@ export default class ClassroomsController {
     const { id } = request.params();
     const { classroom_id, teacher_id } = request.body();
 
-    const classroom = await Classroom.find(classroom_id);
-
-    if (!classroom) {
-      return response.status(404).json({
-        message: 'Sala de aula não encontrada.',
-      })
-    }
-
-    if (classroom.created_by !== teacher_id) {
-      return response.status(401).json({
-        message: 'Você não tem permissões para adicionar alunos nesta sala de aula.',
-      })
-    }
-
-    if (!classroom.availability) {
-      return response.status(400).json({
-        message: 'Sala de aula não possui disponibilidade.',
-      })
-    }
-
-    const newStudent = await Student.find(id);
-
-    if (!newStudent) {
-      return response.status(404).json({
-        message: 'Aluno não encontrado.',
-      })
-    }
-
-    await classroom.load('students')
-
-    const { students } = classroom;
-
-    const studentAlreadyEnrolled = 
-      students.some(students => students.id === newStudent.id);
-
-    if (studentAlreadyEnrolled) {
-      return response.status(400).json({
-        message: 'Aluno já cadastrado nesta sala de aula.',
-      })
-    }
-
-    const enrolledStudents = students.length;
-
-    if (enrolledStudents === classroom.capacity) {
-      if (classroom.availability) {
-        classroom.availability = false;
-        await classroom.save();
-      } 
-
-      return response.status(400).json({
-        message: 'Sala de aula já está com limite de alunos.',
-      })
-    }
-
-    await classroom.related('students').attach([newStudent.id])
-    await classroom.save();
-
-    return response.json({
-      message: 'Aluno adicionado à sala com sucesso!'
+    console.table({
+      id,
+      classroom_id,
+      teacher_id
     })
+
+    const addStudentToClassroomService = new AddStudentToClassroomService();
+
+    const studentAdded = await addStudentToClassroomService.execute({
+      studentId: Number(id),
+      teacherId: teacher_id,
+      classroomId: classroom_id,
+    })
+
+    return response.json(studentAdded);
   }
 
   public async removeStudent({ request, response }: HttpContextContract) {
     const { id } = request.params();
     const { classroom_id, teacher_id } = request.body();
 
-    const classroom = await Classroom.find(classroom_id);
+    const removeStudentFromClassroomService = new RemoveStudentFromClassroomService();
 
-    if (!classroom) {
-      return response.status(404).json({
-        message: 'Sala de aula não encontrada.',
-      })
-    }
+    const studentRemoved = await removeStudentFromClassroomService.execute({
+      studentId: id,
+      teacherId: teacher_id,
+      classroomId: classroom_id,
+    })
 
-    if (classroom.created_by !== teacher_id) {
-      return response.status(401).json({
-        message: 'Você não tem permissões para adicionar alunos nesta sala de aula.'
-      })
-    }
-
-    if (!classroom.availability) {
-      return response.status(400).json({
-        message: 'Sala de aula não possui disponibilidade.'
-      })
-    }
-
-    const studentToRemove = await Student.find(id);
-
-    if (!studentToRemove) {
-      return response.status(404).json({
-        message: 'Aluno não encontrado.'
-      })
-    }
-
-    await classroom.load('students')
-
-    const { students } = classroom;
-
-    const enrolledStudents = students.length;
-
-    const studentAlreadyEnrolled = 
-      students.some(students => students.id === studentToRemove.id);
-
-    if (!studentAlreadyEnrolled) {
-      return response.status(404).json({
-        message: 'Aluno não encontrado nesta sala de aula.'
-      })
-    }
-
-    await classroom.related('students').detach([studentToRemove.id])
-    await classroom.save();
-
-
-    if ((enrolledStudents - 1) < classroom.capacity && !classroom.availability) {
-      classroom.availability = true;
-      await classroom.save();
-    }
-
-    return {
-      message: 'Aluno removido da sala com sucesso!'
-    }
+    return response.json(studentRemoved);
   }
 
   public async showStudents({ request, response }: HttpContextContract) {
     const { id } = request.params();
     const { teacher_id } = request.qs();
 
-    const classroom = await Classroom.find(id);
+    const showStudentsFromClassroomService = new ShowStudentsFromClassroomService();
 
-    if (!classroom) {
-      return response.status(404).json({
-        message: 'Sala de aula não encontrada.',
-      })
-    }
+    const studentsFromClassroom = await showStudentsFromClassroomService.execute({
+      classroomId: id,
+      teacherId: teacher_id
+    })
 
-    if (classroom.created_by != teacher_id) {
-      return response.status(401).json({
-        message: 'Você não tem permissões ver alunos desta sala de aula.',
-      })
-    }
-
-    if (!classroom.availability) {
-      return response.status(400).json({
-        message: 'Sala de aula não possui disponibilidade.',
-      })
-    }
-
-    await classroom.load('students')
-
-    const { students } = classroom;
-
-    return response.json({ students });
+    return response.json(studentsFromClassroom);
   }
 
   public async myClasses({ request, response }: HttpContextContract) {
     const { id } = request.params();
 
-    const student = await Student
-      .query()
-      .select(['id', 'name'])
-      .where('id', id)
-      .preload('classrooms', (query) => {
-        query.select(['classrooms.class_number', 'classrooms.created_by'])
-        query.pivotColumns(['student_id'])
-        query.preload('teacher', (query) => {
-          query.select(['name'])
-        })
-      })
-      .first();
+    const showClassroomsFromStudentService = new ShowClassroomsFromStudentService();
 
-    if (!student) {
-      return response.status(404).json({
-        message: 'Aluno não encontrado.'
-      });
-    }
+    const classes = await showClassroomsFromStudentService.execute(id);
 
-    const classesFormatted = student.classrooms.map((classroom) => {
-      return {
-        classNumber: classroom.class_number,
-        teacher: classroom.teacher.name,
-      }
-    })
-
-    return response.json({
-      message: 'Salas de aula encontradas com sucesso.',
-      data: {
-        student: student.name,
-        classes: classesFormatted
-      }
-    });
+    return response.json(classes);
   }
 }

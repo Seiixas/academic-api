@@ -1,123 +1,71 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { v4 as uuidV4 } from 'uuid';
 
-import Teacher from 'App/Models/Teacher';
+import { CreateTeacherService } from 'App/Services/Teacher/CreateTeacherService';
+import { ShowTeacherService } from 'App/Services/Teacher/ShowTeacherService';
+import { UpdateTeacherService } from 'App/Services/Teacher/UpdateTeacherService';
+import { RemoveTeacherService } from 'App/Services/Teacher/RemoveTeacherService';
+import { ChangeAvailabilityService } from 'App/Services/Classrooms/ChangeAvailabilityService';
 
 export default class TeachersController {
   public async store({ request, response }: HttpContextContract) {
     const { name, email, birthday } = request.body();
 
-    const emailAlreadyExists = await Teacher.findBy('email', email);
+    const createTeacherService = new CreateTeacherService();
 
-    if (emailAlreadyExists) {
-      return response.status(400).json({
-        message: 'Este e-mail já está em uso.',
-      })
-    }
-
-    const todayDate = new Date().setHours(0,0,0,0);
-    const birthdayDate = new Date(birthday).setHours(0,0,0,0);
-
-    if (birthdayDate >= todayDate) {
-      return response.status(400).json({
-        message: 'Data de nascimento superior a data de hoje.'
-      })
-    }
-
-    const registrationGenerated = uuidV4();
-
-    const teacher = await Teacher.create({
-      name,
-      email,
-      registration: registrationGenerated,
-      birthday
+    const teacher = await createTeacherService.execute({
+      name, email, birthday
     });
 
-    response.status(201);
-
-    return response.json({
-      message: 'Professor cadastrado com sucesso!',
-      data: teacher
-    });
+    return response.status(201).json(teacher);
   }
 
   public async show({ request, response }: HttpContextContract) {
     const { id } = request.params();
 
-    const teacher = await Teacher.find(id);
+    const showTeacherService = new ShowTeacherService();
 
-    if (!teacher) {
-      return response.status(404).json({
-        message: 'Professor não encontrado.',
-      })
-    }
+    const teacher = await showTeacherService.execute(id);
 
-    return response.json({
-      message: 'Professor encontrado com sucesso!',
-      data: teacher
-    })
+    return response.json(teacher)
   }
 
   public async update({ request, response }: HttpContextContract) {
     const { name, email, birthday } = request.body();
     const { id } = request.params();
 
-    const teacher = await Teacher.find(id);
+    const updateTeacherService = new UpdateTeacherService();
 
-    if (!teacher) {
-      return response.status(404).json({
-        message: 'Professor não encontrado.',
-      })
-    }
-
-    const emailAlreadyExists = await Teacher.findBy('email', email);
-
-    if (emailAlreadyExists) {
-      return response.status(400).json({
-        message: 'Este e-mail já está em uso.',
-      })
-    }
-
-    const todayDate = new Date().setHours(0,0,0,0);
-    const birthdayDate = new Date(birthday).setHours(0,0,0,0);
-
-    if (birthdayDate >= todayDate) {
-      return response.status(400).json({
-        message: 'Data de nascimento superior a data de hoje.',
-      })
-    }
-    
-    teacher.name = name ?? name;
-    teacher.email = email ?? email;
-    teacher.birthday = birthday ?? birthday;
-
-    await teacher.save();
-
-    return response.json({
-      message: 'Professor alterado com sucesso!',
-      data: teacher
+    const updatedTeacher = await updateTeacherService.execute({
+      name,
+      email,
+      birthday,
+      id,
     })
+
+    return response.json(updatedTeacher);
   }
 
   public async destroy({ request, response }: HttpContextContract) {
     const { id } = request.params();
     const { email } = request.body();
 
-    const teacher = await Teacher.find(id);
+    const removeTeacherService = new RemoveTeacherService();
 
-    if (!teacher) {
-      return response.status(404).json({
-        message: 'Professor não encontrado.',
-      })
-    }
+    await removeTeacherService.execute({ id, email });
 
-    if (teacher.email !== email) {
-      return response.status(404).json({
-        message: 'E-mail não confere com e-mail do professor.',
-      })
-    }
-    
-    await teacher.delete();
+    return response.status(204);
+  }
+
+  public async changeAvailability({ request, response }: HttpContextContract) {
+    const { id } = request.params();
+    const { status, teacher_responsible } = request.body();
+
+    const changeAvailabilityService = new ChangeAvailabilityService();
+
+    await changeAvailabilityService.execute({
+      classroomId: id, status, teacherId: teacher_responsible
+    })
+
     return response.status(204);
   }
 }

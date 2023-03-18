@@ -1,123 +1,57 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { v4 as uuidV4 } from 'uuid';
 
-import Student from 'App/Models/Student';
+import { CreateStudentService } from 'App/Services/Students/CreateStudentService';
+import { ShowStudentService } from 'App/Services/Students/ShowStudentService';
+import { UpdateStudentService } from 'App/Services/Students/UpdateStudentService';
+import { RemoveStudentService } from 'App/Services/Students/RemoveStudentService';
 
 export default class StudentsController {
   public async store({ request, response }: HttpContextContract) {
     const { name, email, birthday } = request.body();
 
-    const emailAlreadyExists = await Student.findBy('email', email);
+    const createStudentService = new CreateStudentService();
 
-    if (emailAlreadyExists) {
-      return response.status(400).json({
-        message: 'Este e-mail já está em uso.',
-      })
-    }
-
-    const todayDate = new Date().setHours(0,0,0,0);
-    const birthdayDate = new Date(birthday).setHours(0,0,0,0);
-
-    if (birthdayDate >= todayDate) {
-      return response.status(400).json({
-        message: 'Data de nascimento superior a data de hoje.'
-      })
-    }
-
-    const registrationGenerated = uuidV4();
-
-    const student = await Student.create({
-      name,
-      email,
-      registration: registrationGenerated,
-      birthday
+    const student = await createStudentService.execute({
+      name, email, birthday
     });
 
-    response.status(201);
-
-    return response.json({
-      message: 'Aluno cadastrado com sucesso!',
-      data: student
-    });
+    return response.status(201).json(student);
   }
 
   public async show({ request, response }: HttpContextContract) {
     const { id } = request.params();
 
-    const student = await Student.find(id);
+    const showStudentService = new ShowStudentService();
 
-    if (!student) {
-      return response.status(404).json({
-        message: 'Aluno não encontrado.',
-      })
-    }
+    const student = await showStudentService.execute(id);
 
-    return response.json({
-      message: 'Aluno encontrado com sucesso!',
-      data: student
-    })
+    return response.json(student)
   }
 
   public async update({ request, response }: HttpContextContract) {
     const { name, email, birthday } = request.body();
     const { id } = request.params();
 
-    const student = await Student.find(id);
+    const updateStudentService = new UpdateStudentService();
 
-    if (!student) {
-      return response.status(404).json({
-        message: 'Aluno não encontrado.',
-      })
-    }
-
-    const emailAlreadyExists = await Student.findBy('email', email);
-
-    if (emailAlreadyExists) {
-      return response.status(400).json({
-        message: 'Este e-mail já está em uso.',
-      })
-    }
-
-    const todayDate = new Date().setHours(0,0,0,0);
-    const birthdayDate = new Date(birthday).setHours(0,0,0,0);
-
-    if (birthdayDate >= todayDate) {
-      return response.status(400).json({
-        message: 'Data de nascimento superior a data de hoje.',
-      })
-    }
-    
-    student.name = name ?? name;
-    student.email = email ?? email;
-    student.birthday = birthday ?? birthday;
-
-    await student.save();
-
-    return response.json({
-      message: 'Aluno alterado com sucesso!',
-      data: student
+    const updatedStudent = await updateStudentService.execute({
+      name,
+      email,
+      birthday,
+      id,
     })
+
+    return response.json(updatedStudent);
   }
 
   public async destroy({ request, response }: HttpContextContract) {
     const { id } = request.params();
     const { email } = request.body();
 
-    const student = await Student.find(id);
+    const removeStudentService = new RemoveStudentService();
 
-    if (!student) {
-      return response.status(404).json({
-        message: 'Aluno não encontrado.',
-      })
-    }
+    await removeStudentService.execute({ id, email });
 
-    if (student.email !== email) {
-      return response.status(404).json({
-        message: 'E-mail não confere com e-mail do aluno.',
-      })
-    }
-    
-    await student.delete();
     return response.status(204);
   }
 }
