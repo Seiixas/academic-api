@@ -1,7 +1,7 @@
+import { schema } from '@ioc:Adonis/Core/Validator'
+
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import Classroom from 'App/Models/Classroom';
-import Student from 'App/Models/Student';
 import { AddStudentToClassroomService } from 'App/Services/Classrooms/AddStudentToClassroomService';
 import { CreateClassroomService } from 'App/Services/Classrooms/CreateClassroomService';
 import { RemoveClassroomService } from 'App/Services/Classrooms/RemoveClassroomService';
@@ -18,6 +18,14 @@ export default class ClassroomsController {
       class_number,
       capacity
     } = request.body();
+
+    const createClassroomSchema = schema.create({
+      teacher_responsible: schema.number(),
+      class_number: schema.number(),
+      capacity: schema.number(),
+    })
+
+    await request.validate({ schema: createClassroomSchema });
 
     const createClassroomService = new CreateClassroomService();
 
@@ -47,8 +55,15 @@ export default class ClassroomsController {
       teacher_responsible,
       class_number,
       capacity,
-      availability
     } = request.body();
+
+    const updateClassroomSchema = schema.create({
+      teacher_responsible: schema.number.optional(),
+      class_number: schema.number.optional(),
+      capacity: schema.number.optional(),
+    })
+
+    await request.validate({ schema: updateClassroomSchema });
 
     const updateClassroomService = new UpdateClassroomService();
 
@@ -57,7 +72,6 @@ export default class ClassroomsController {
       teacherId: teacher_responsible,
       classNumber: class_number,
       capacity,
-      availability,
     });
 
     return response.json(updatedClassroom)
@@ -66,6 +80,12 @@ export default class ClassroomsController {
   public async destroy({ request, response }: HttpContextContract) {
     const { id } = request.params();
     const { teacher_responsible } = request.body();
+
+    const removeClassroomSchema = schema.create({
+      teacher_responsible: schema.number(),
+    })
+
+    await request.validate({ schema: removeClassroomSchema });
 
     const removeClassroomService = new RemoveClassroomService();
 
@@ -81,11 +101,12 @@ export default class ClassroomsController {
     const { id } = request.params();
     const { classroom_id, teacher_id } = request.body();
 
-    console.table({
-      id,
-      classroom_id,
-      teacher_id
+    const addStudentSchema = schema.create({
+      classroom_id: schema.number(),
+      teacher_id: schema.number(),
     })
+
+    await request.validate({ schema: addStudentSchema });
 
     const addStudentToClassroomService = new AddStudentToClassroomService();
 
@@ -101,6 +122,13 @@ export default class ClassroomsController {
   public async removeStudent({ request, response }: HttpContextContract) {
     const { id } = request.params();
     const { classroom_id, teacher_id } = request.body();
+
+    const removeStudentSchema = schema.create({
+      classroom_id: schema.number(),
+      teacher_id: schema.number(),
+    })
+
+    await request.validate({ schema: removeStudentSchema });
 
     const removeStudentFromClassroomService = new RemoveStudentFromClassroomService();
 

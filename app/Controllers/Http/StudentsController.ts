@@ -1,3 +1,5 @@
+import { schema } from '@ioc:Adonis/Core/Validator'
+
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 import { CreateStudentService } from 'App/Services/Students/CreateStudentService';
@@ -8,6 +10,14 @@ import { RemoveStudentService } from 'App/Services/Students/RemoveStudentService
 export default class StudentsController {
   public async store({ request, response }: HttpContextContract) {
     const { name, email, birthday } = request.body();
+    
+    const newStudentSchema = schema.create({
+      name: schema.string(),
+      email: schema.string(),
+      birthday: schema.date(),
+    })
+
+    await request.validate({ schema: newStudentSchema });
 
     const createStudentService = new CreateStudentService();
 
@@ -25,12 +35,20 @@ export default class StudentsController {
 
     const student = await showStudentService.execute(id);
 
-    return response.json(student)
+    return response.json(student);
   }
 
   public async update({ request, response }: HttpContextContract) {
     const { name, email, birthday } = request.body();
     const { id } = request.params();
+
+    const updateStudentSchema = schema.create({
+      name: schema.string.optional(),
+      email: schema.string.optional(),
+      birthday: schema.date.optional(),
+    })
+
+    await request.validate({ schema: updateStudentSchema });
 
     const updateStudentService = new UpdateStudentService();
 
@@ -47,6 +65,12 @@ export default class StudentsController {
   public async destroy({ request, response }: HttpContextContract) {
     const { id } = request.params();
     const { email } = request.body();
+
+    const deleteStudentSchema = schema.create({
+      email: schema.string(),
+    })
+
+    await request.validate({ schema: deleteStudentSchema });
 
     const removeStudentService = new RemoveStudentService();
 

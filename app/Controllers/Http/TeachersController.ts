@@ -1,3 +1,5 @@
+import { schema } from '@ioc:Adonis/Core/Validator'
+
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 import { CreateTeacherService } from 'App/Services/Teacher/CreateTeacherService';
@@ -11,6 +13,14 @@ export default class TeachersController {
     const { name, email, birthday } = request.body();
 
     const createTeacherService = new CreateTeacherService();
+
+    const createTeacherSchema = schema.create({
+      name: schema.string(),
+      email: schema.string(),
+      birthday: schema.date(),
+    })
+
+    await request.validate({ schema: createTeacherSchema });
 
     const teacher = await createTeacherService.execute({
       name, email, birthday
@@ -33,6 +43,14 @@ export default class TeachersController {
     const { name, email, birthday } = request.body();
     const { id } = request.params();
 
+    const updateTeacherSchema = schema.create({
+      name: schema.string.optional(),
+      email: schema.string.optional(),
+      birthday: schema.date.optional(),
+    })
+
+    await request.validate({ schema: updateTeacherSchema });
+
     const updateTeacherService = new UpdateTeacherService();
 
     const updatedTeacher = await updateTeacherService.execute({
@@ -49,6 +67,12 @@ export default class TeachersController {
     const { id } = request.params();
     const { email } = request.body();
 
+    const removeTeacherSchema = schema.create({
+      email: schema.string(),
+    })
+
+    await request.validate({ schema: removeTeacherSchema });
+
     const removeTeacherService = new RemoveTeacherService();
 
     await removeTeacherService.execute({ id, email });
@@ -59,6 +83,13 @@ export default class TeachersController {
   public async changeAvailability({ request, response }: HttpContextContract) {
     const { id } = request.params();
     const { status, teacher_responsible } = request.body();
+
+    const changeAvailabilitySchema = schema.create({
+      status: schema.boolean(),
+      teacher_responsible: schema.number(),
+    })
+
+    await request.validate({ schema: changeAvailabilitySchema });
 
     const changeAvailabilityService = new ChangeAvailabilityService();
 

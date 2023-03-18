@@ -8,12 +8,11 @@ interface IRequest {
   teacherId: string;
   classNumber: number;
   capacity: number;
-  availability: boolean;
   id: number;
 }
 
 export class UpdateClassroomService {
-  async execute({ teacherId, classNumber, capacity, availability, id }: IRequest) {
+  async execute({ teacherId, classNumber, capacity, id }: IRequest) {
     const classroom = await Classroom.find(id);
 
     if (!classroom) {
@@ -46,7 +45,6 @@ export class UpdateClassroomService {
 
     classroom.class_number = classNumber ?? classNumber;
     classroom.capacity = capacity ?? capacity;
-    classroom.availability = availability ?? availability;
 
     await classroom.save();
 
