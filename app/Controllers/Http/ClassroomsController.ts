@@ -1,4 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Database from '@ioc:Adonis/Lucid/Database';
 
 import Classroom from 'App/Models/Classroom';
 import Student from 'App/Models/Student';
@@ -218,5 +219,105 @@ export default class ClassroomsController {
     return {
       message: 'Aluno adicionado à sala com sucesso!'
     }
+  }
+
+  public async removeStudent({ request, response }: HttpContextContract) {
+    const { id } = request.params();
+    const { classroom_id, teacher_id } = request.body();
+
+    const classroom = await Classroom.find(classroom_id);
+
+    if (!classroom) {
+      response.status(404);
+      return {
+        message: 'Sala de aula não encontrada.',
+      }
+    }
+
+    if (classroom.created_by !== teacher_id) {
+      response.status(401);
+      return {
+        message: 'Você não tem permissões para adicionar alunos nesta sala de aula.',
+      }
+    }
+
+    if (!classroom.availability) {
+      response.status(400);
+      return {
+        message: 'Sala de aula não possui disponibilidade.',
+      }
+    }
+
+    const studentToRemove = await Student.find(id);
+
+    if (!studentToRemove) {
+      response.status(404);
+      return {
+        message: 'Aluno não encontrado.',
+      }
+    }
+
+    await classroom.load('students')
+
+    const { students } = classroom;
+
+    const enrolledStudents = students.length;
+
+    const studentAlreadyEnrolled = 
+      students.some(students => students.id === studentToRemove.id);
+
+    if (!studentAlreadyEnrolled) {
+      response.status(404);
+      return {
+        message: 'Aluno não encontrado nesta sala de aula.',
+      }
+    }
+
+    await classroom.related('students').detach([studentToRemove.id])
+    await classroom.save();
+
+
+    if ((enrolledStudents - 1) < classroom.capacity && !classroom.availability) {
+      classroom.availability = true;
+      await classroom.save();
+    }
+
+    return {
+      message: 'Aluno removido da sala com sucesso!'
+    }
+  }
+
+  public async showStudents({ request, response }: HttpContextContract) {
+    const { id } = request.params();
+    const { teacher_id } = request.qs();
+
+    const classroom = await Classroom.find(id);
+
+    if (!classroom) {
+      response.status(404);
+      return {
+        message: 'Sala de aula não encontrada.',
+      }
+    }
+
+    if (classroom.created_by != teacher_id) {
+      response.status(401);
+      return {
+        message: 'Você não tem permissões ver alunos desta sala de aula.',
+      }
+    }
+
+    if (!classroom.availability) {
+      response.status(400);
+      return {
+        message: 'Sala de aula não possui disponibilidade.',
+      }
+    }
+
+    await classroom.load('students')
+
+    const { students } = classroom;
+
+    return response.json({ students });
   }
 }
