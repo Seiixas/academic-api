@@ -1,6 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 import Classroom from 'App/Models/Classroom';
+import Student from 'App/Models/Student';
 import Teacher from 'App/Models/Teacher';
 
 export default class ClassroomsController {
@@ -144,5 +145,78 @@ export default class ClassroomsController {
 
     await classroom.delete();
     response.status(204);
+  }
+
+  public async addStudent({ request, response }: HttpContextContract) {
+    const { id } = request.params();
+    const { classroom_id, teacher_id } = request.body();
+
+    const classroom = await Classroom.find(classroom_id);
+
+    if (!classroom) {
+      response.status(404);
+      return {
+        message: 'Sala de aula não encontrada.',
+      }
+    }
+
+    if (classroom.created_by !== teacher_id) {
+      response.status(401);
+      return {
+        message: 'Você não tem permissões para adicionar alunos nesta sala de aula.',
+      }
+    }
+
+    if (!classroom.availability) {
+      response.status(400);
+      return {
+        message: 'Sala de aula não possui disponibilidade.',
+      }
+    }
+
+    const newStudent = await Student.find(id);
+
+    if (!newStudent) {
+      response.status(404);
+      return {
+        message: 'Aluno não encontrado.',
+      }
+    }
+
+    await classroom.load('students')
+
+    const { students } = classroom;
+
+    const studentAlreadyEnrolled = 
+      students.some(students => students.id === newStudent.id);
+
+    if (studentAlreadyEnrolled) {
+      response.status(400);
+      return {
+        message: 'Aluno já cadastrado nesta sala de aula.',
+      }
+    }
+
+    const enrolledStudents = students.length;
+
+    if (enrolledStudents === classroom.capacity) {
+      
+      if (classroom.availability) {
+        classroom.availability = false;
+        await classroom.save();
+      } 
+
+      response.status(400);
+      return {
+        message: 'Sala de aula já está com limite de alunos.',
+      }
+    }
+
+    await classroom.related('students').attach([newStudent.id])
+    await classroom.save();
+
+    return {
+      message: 'Aluno adicionado à sala com sucesso!'
+    }
   }
 }
