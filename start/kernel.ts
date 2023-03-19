@@ -41,4 +41,5 @@ Server.middleware.register([
 |
 */
 Server.middleware.registerNamed({
+  validateEmail: () => import('App/Middleware/ValidateEmail')
 })
