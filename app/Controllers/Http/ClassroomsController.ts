@@ -9,7 +9,8 @@ import { RemoveStudentFromClassroomService } from 'App/Services/Classrooms/Remov
 import { ShowClassroomService } from 'App/Services/Classrooms/ShowClassroomService';
 import { ShowClassroomsFromStudentService } from 'App/Services/Classrooms/ShowClassroomsFromStudentService';
 import { ShowStudentsFromClassroomService } from 'App/Services/Classrooms/ShowStudentsFromClassroomService';
-import { UpdateClassroomService } from 'App/Services/Classrooms/UpdateClasroomService';
+import { UpdateClassroomService } from 'App/Services/Classrooms/UpdateClassroomService';
+import { ChangeAvailabilityService } from 'App/Services/Classrooms/ChangeAvailabilityService';
 
 export default class ClassroomsController {
   public async store({ request, response }: HttpContextContract) {
@@ -163,5 +164,25 @@ export default class ClassroomsController {
     const classes = await showClassroomsFromStudentService.execute(id);
 
     return response.json(classes);
+  }
+
+  public async changeAvailability({ request, response }: HttpContextContract) {
+    const { id } = request.params();
+    const { status, teacher_responsible } = request.body();
+
+    const changeAvailabilitySchema = schema.create({
+      status: schema.boolean(),
+      teacher_responsible: schema.number(),
+    })
+
+    await request.validate({ schema: changeAvailabilitySchema });
+
+    const changeAvailabilityService = new ChangeAvailabilityService();
+
+    await changeAvailabilityService.execute({
+      classroomId: id, status, teacherId: teacher_responsible
+    })
+
+    return response.status(204);
   }
 }

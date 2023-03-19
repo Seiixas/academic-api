@@ -29,15 +29,21 @@ export class UpdateClassroomService {
       throw new UnauthorizedException('Você não está autorizado a editar esta sala de aula.');
     }
 
-    const classNumberAlreadyExists = await Classroom.findBy('class_number', classNumber);
+    if (classNumber) {
+      const classNumberAlreadyExists = await Classroom.findBy('class_number', classNumber);
 
-    if (classNumberAlreadyExists) {
-      throw new BadRequestException('Este número de classe já foi utilizado por outro professor.')
+      if (classNumberAlreadyExists) {
+        throw new BadRequestException('Este número de classe já foi utilizado por outro professor.')
+      }
     }
 
     await classroom.load('students');
 
     const enrolledStudents = classroom.students.length;
+
+    if (capacity === 0) {
+      throw new BadRequestException('A sala deve ter ao menos uma vaga para alunos.');
+    }
 
     if (capacity < enrolledStudents) {
       throw new BadRequestException('A capacidade não pode ser menor que a quantidade alunos já matriculados.');
@@ -50,7 +56,10 @@ export class UpdateClassroomService {
 
     return {
       message: 'Sala de aula atualizada com sucesso!',
-      data: classroom
+      data: {
+        class_number: classroom.class_number,
+        capacity: classroom.capacity
+      }
     }
   }
 }

@@ -6,7 +6,6 @@ import { CreateTeacherService } from 'App/Services/Teacher/CreateTeacherService'
 import { ShowTeacherService } from 'App/Services/Teacher/ShowTeacherService';
 import { UpdateTeacherService } from 'App/Services/Teacher/UpdateTeacherService';
 import { RemoveTeacherService } from 'App/Services/Teacher/RemoveTeacherService';
-import { ChangeAvailabilityService } from 'App/Services/Classrooms/ChangeAvailabilityService';
 
 export default class TeachersController {
   public async store({ request, response }: HttpContextContract) {
@@ -76,26 +75,6 @@ export default class TeachersController {
     const removeTeacherService = new RemoveTeacherService();
 
     await removeTeacherService.execute({ id, email });
-
-    return response.status(204);
-  }
-
-  public async changeAvailability({ request, response }: HttpContextContract) {
-    const { id } = request.params();
-    const { status, teacher_responsible } = request.body();
-
-    const changeAvailabilitySchema = schema.create({
-      status: schema.boolean(),
-      teacher_responsible: schema.number(),
-    })
-
-    await request.validate({ schema: changeAvailabilitySchema });
-
-    const changeAvailabilityService = new ChangeAvailabilityService();
-
-    await changeAvailabilityService.execute({
-      classroomId: id, status, teacherId: teacher_responsible
-    })
 
     return response.status(204);
   }

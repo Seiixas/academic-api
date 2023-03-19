@@ -17,10 +17,16 @@ export class UpdateStudentService {
       throw new NotFoundException('Aluno não encontrado.');
     }
 
-    const emailAlreadyExists = await Student.findBy('email', email);
-
-    if (emailAlreadyExists) {
-      throw new BadRequestException('Este e-mail já está em uso.');
+    if (email) {
+      if (email === student.email) {
+        throw new BadRequestException('Este é o seu próprio e-mail.');
+      }
+  
+      const emailAlreadyExists = await Student.findBy('email', email);
+  
+      if (emailAlreadyExists) {
+        throw new BadRequestException('Este e-mail já está em uso.');
+      }
     }
 
     const todayDate = new Date().setHours(0,0,0,0);
@@ -38,7 +44,11 @@ export class UpdateStudentService {
 
     return {
       message: 'Aluno alterado com sucesso!',
-      data: student
+      data: {
+        name: student.name,
+        email: student.email,
+        birthday: student.birthday
+      }
     }
   }
 }
