@@ -2,7 +2,7 @@
 
 ## Módulo de Estudante
 
-#### ` POST /students`
+#### `🟢 POST /students`
 
 Cria um novo estudante na base de dados
 

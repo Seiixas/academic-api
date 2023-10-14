@@ -14,7 +14,7 @@ Antes de começar, verifique se você atendeu aos seguintes requisitos:
 
 - Node
 
-## 🚀 Instalando <nome_do_projeto>
+## 🚀 Instalando o Academic API
 
 Para instalar, siga estas etapas:
 
@@ -65,7 +65,7 @@ Este projeto foi utilizado como teste para ingressar na soft house:
 **Back-end Developer** \
 [**ClickSoft**](https://clicksoft.com.br/) • Full-time \
 Linguagens & Tecnologias: `AdonisJS`, `LucidORM`, `TypeScript`, `Heroku`, `Google API`, `React`,\
-Projetos em destaque: [Rocket](https://www.spacex.com/), [Marte](<https://pt.wikipedia.org/wiki/Marte_(planeta)>)
+Projetos em destaque: Indisponível
 <br/>
 
 Aprendi toda o framework (AdonisJS) e seu ORM (LucidORM) apenas lendo documentações.
