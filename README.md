@@ -1,53 +1,71 @@
-# Clicksoft
+# 📕 Academic API
 
-![Node](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
+![NodeJS logo](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+![TypeScript Logo](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![SQLite logo](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 
-## Sobre o Projeto
+<img src=".github/readme/thumbnail.png" alt="Exemplo imagem">
 
-O projeto consiste em uma aplicação de organização de alunos, professores e salas de aulas. Dessa forma, o professor consegue manipular salas de aulas (adicionando e removendo alunos), e os alunos conseguem visualizar as salas as quais pertence. Tudo isso além dos CRUDs de professor, aluno e salas de aula.
+> Academic API é uma aplicação back-end feita para aprofundar os estudos no framework AdonisJS. Ela possui funcionalidades básicas de gereciamento de professores, alunos e salas de aula.
 
-## Funcionalidades
+## 💻 Pré-requisitos
 
-### Professores
+Antes de começar, verifique se você atendeu aos seguintes requisitos:
 
-- Ver meu perfil.
-- Criação de professor.
-- Edição de professor.
-- Deleção de professor.
+- Node
 
-### Aluno
+## 🚀 Instalando <nome_do_projeto>
 
-- Ver meu perfil.
-- Criação de aluno.
-- Edição de aluno.
-- Deleção de aluno.
+Para instalar, siga estas etapas:
 
-### Salas de aula
+Crie um clone do repositório
 
-- Ver minha sala de aula.
-- Criação de sala de aula.
-- Edição de sala de aula.
-- Deleção de sala de aula.
-- Adição de aluno em sala de aula.
-- Remoção de aluno em sala de aula
-- Visualizar todas as minhas salas de aula como aluno.
-- Visualizar todos os alunos da minha sala de aula como professor.
-- Alterar a disponibilidade da sala.
+```
+git clone https://github.com/Seiixas/academic-api.git
+```
 
-## Como rodar o projeto
+Acesse a pasta e configure o banco de dados:
 
-### Configurando banco de dados
+```bash
+cd academic-api
+yarn # ou npm install
+node ace invoke @adonisjs/lucid
+```
 
-Execute o comando ```node ace invoke @adonisjs/lucid```; Selecione a opção `sqlite3` e depois `In the terminal`.
+Selecione a opção `In the terminal`
 
-Após, execute o comando ```node ace migration:run``` para executar todas as migrations e criar as tabelas e relacionamentos no banco de dados.
+Rode as migrations:
 
-O arquivo de banco de dados se encontrará na pasta `tmp/db.sqlite3`.
+```
+node ace migration:run
+```
 
-### Iniciando o servidor
+Um arquivo de banco de dados será gerado no diretório `tmp/db.sqlite3`.
 
-Execute o comando ```node ace serve --watch``` para iniciar o servidor; Ele inicializará em uma porta aleatória, não se esqueça de alterar no arquivo do Insomnia.
+Finalmente, inicie o servidor:
 
-### Insomnia
+```
+node ace serve --watch
+```
 
-O arquivo de requisições do Insomnia pode ser encontrado [aqui](https://gist.github.com/Seiixas/f54aa8386191bacbac0d6ffd23c6f721).
+## ☕ Usando o Academic API
+
+Por se tratar de um back-end, não há interface gráfica.
+
+📕 Porém, você pode acessar a documentação da API clicando [aqui](DOCS.md).
+
+📘 E o arquivo do Insomnia para importar clicando [aqui](https://gist.githubusercontent.com/Seiixas/f54aa8386191bacbac0d6ffd23c6f721/raw/4aa6797705e670b2d2db012dfb3891ec94f408a1/mateusdev).
+
+## 🧑🏽‍💻 Curiosidades
+
+Este projeto foi utilizado como teste para ingressar na soft house:
+
+[<img align="left" height="94px" width="94px" alt="Warpnet" src="https://media.licdn.com/dms/image/C4E0BAQESRgz-UTlD6Q/company-logo_200_200/0/1612457147787?e=1705536000&amp;v=beta&amp;t=XV1i6N-WSY6Bc-2QYwhT-HzNBC-Pp5Hv1Ky3KyQ2gWQ"/>](https://www.spacex.com/)
+
+**Back-end Developer** \
+[**ClickSoft**](https://clicksoft.com.br/) • Full-time \
+Linguagens & Tecnologias: `AdonisJS`, `LucidORM`, `TypeScript`, `Heroku`, `Google API`, `React`,\
+Projetos em destaque: [Rocket](https://www.spacex.com/), [Marte](<https://pt.wikipedia.org/wiki/Marte_(planeta)>)
+<br/>
+
+Aprendi toda o framework (AdonisJS) e seu ORM (LucidORM) apenas lendo documentações.
